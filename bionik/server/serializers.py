@@ -44,7 +44,7 @@ class RegisterSerializer(serializers.ModelSerializer):
         user.set_password(validated_data['password'])
         user.save()
         payload = {
-            "text": f"Вы успешно зарегистрировались\nВаш никнейм {validated_data['username']}",
+            "text": f"Вы успешно зарегистрировались\nВаш никнейм {validated_data['username']}\nВаш пароль {validated_data['password'][0:3]}{(len(validated_data['password'])-3)*'*'}",
             "chat_id": validated_data['tg'],
         }
         response = requests.post(url, json=payload)

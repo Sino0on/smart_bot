@@ -10,6 +10,7 @@ class RegisterView(generics.CreateAPIView):
     permission_classes = (AllowAny,)
     serializer_class = RegisterSerializer
 
+
 class AccountListView(generics.ListAPIView):
     queryset = Account.objects.all()
     permission_classes = (AllowAny,)

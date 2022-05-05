@@ -3,8 +3,8 @@ import requests
 url = "https://api.telegram.org/bot5346235377:AAGg1mWc4FPRxGn1GFcnOBcj75MMLlrAJlA/sendMessage"
 
 payload = {
-    "text": "Меня зовут Бот",
-    "chat_id": "889201663",
+    "text": "Ghbdtn?",
+    "chat_id": "795677145",
 }
 
 asd = {"username": "pop22", "password": "qwerty2003", "password2": "qwerty2003", "email": "asd@dsawe.da", "first_name": "yt", "last_name": "re", "tg": "795677145"}
@@ -19,7 +19,7 @@ headers = {
     "Accept-Encoding": "gzip, deflate, br",
     "Connection": "keep-alive"
 }
-response = requests.post('http://127.0.0.1:8000/api/v1/register/', json=asd, headers=headers)
+response = requests.post(url, json=payload, headers=headers)
 
 
 print(response.text)

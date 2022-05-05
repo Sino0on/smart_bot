@@ -20,6 +20,7 @@ headers = {
     "Connection": "keep-alive"
 }
 
+
 class FSMAdmin(StatesGroup):
     username = State()
     password = State()
@@ -28,6 +29,7 @@ class FSMAdmin(StatesGroup):
     first_name = State()
     last_name = State()
     tg = State()
+
 
 a = {}
 API_TOKEN = '5346235377:AAGg1mWc4FPRxGn1GFcnOBcj75MMLlrAJlA'
@@ -42,25 +44,30 @@ dp = Dispatcher(bot, storage=storage)
 
 
 def postreg(asd):
-    response = requests.post('http://127.0.0.1:8000/api/v1/register/', json=asd, headers=headers)
+    response = requests.post('http://127.0.0.1:8888/api/v1/register/', json=asd, headers=headers)
     print(response.text)
+
 
 @dp.message_handler(commands=['register'], state=None)
 async def cm_start(message : types.Message):
+
     await FSMAdmin.username.set()
     await message.reply('Напиши свой username')
 
 
 @dp.message_handler(state=FSMAdmin.username)
 async def load_username(message: types.Message, state: FSMContext):
-    rer = requests.post('http://127.0.0.1:8000/api/v1/accountlist/')
-    if message.text not in [rer]:
+    rer = requests.get(' http://127.0.0.1:8888/api/v1/accountlist/').json()
+    rdr = [i['username'] for i in rer]
+    print(rdr)
+    if message.text not in rdr:
         async with state.proxy() as data:
             data['username'] = message.text
         await FSMAdmin.next()
         await message.reply('Придумай пароль')
     else:
-        await message.reply('Повторите')
+        await message.reply('Такой никнейм уже есть, попробуй другой')
+
 
 @dp.message_handler(state=FSMAdmin.password)
 async def load_password(message : types.Message, state: FSMContext):
@@ -117,9 +124,8 @@ async def send_welcome(message: types.Message):
 
 @dp.message_handler()
 async def echo(message: types.Message):
-    # old style:
-    # await bot.send_message(message.chat.id, message.text)
-    await message.answer(message.text)
+
+    await message.answer('Я особо ничего не умею но скоро мне дадут название')
 
 
 if __name__ == '__main__':
