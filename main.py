@@ -44,7 +44,7 @@ dp = Dispatcher(bot, storage=storage)
 
 
 def postreg(asd):
-    response = requests.post('http://127.0.0.1:8888/api/v1/register/', json=asd, headers=headers)
+    response = requests.post('http://127.0.0.1:9999/api/v1/register/', json=asd, headers=headers)
     print(response.text)
 
 
@@ -57,7 +57,7 @@ async def cm_start(message : types.Message):
 
 @dp.message_handler(state=FSMAdmin.username)
 async def load_username(message: types.Message, state: FSMContext):
-    rer = requests.get(' http://127.0.0.1:8888/api/v1/accountlist/').json()
+    rer = requests.get(' http://127.0.0.1:9999/api/v1/accountlist/').json()
     rdr = [i['username'] for i in rer]
     print(rdr)
     if message.text not in rdr:
