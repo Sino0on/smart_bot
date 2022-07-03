@@ -3,8 +3,8 @@ import requests
 url = "https://api.telegram.org/bot5346235377:AAGg1mWc4FPRxGn1GFcnOBcj75MMLlrAJlA/sendMessage"
 
 payload = {
-    "text": "Ghbdtn?",
-    "chat_id": "795677145",
+    "text": "Привет ку",
+    "chat_id": "-100726429027",
 }
 
 asd = {"username": "pop22", "password": "qwerty2003", "password2": "qwerty2003", "email": "asd@dsawe.da", "first_name": "yt", "last_name": "re", "tg": "795677145"}
@@ -23,3 +23,6 @@ response = requests.post(url, json=payload, headers=headers)
 
 
 print(response.text)
+
+# lst = {sa': "das", 'qwe': '123'}
+# print(ls'dt.values())

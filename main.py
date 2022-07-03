@@ -26,8 +26,6 @@ class FSMAdmin(StatesGroup):
     password = State()
     password2 = State()
     email = State()
-    first_name = State()
-    last_name = State()
     tg = State()
 
 
@@ -44,12 +42,18 @@ dp = Dispatcher(bot, storage=storage)
 
 
 def postreg(asd):
-    response = requests.post('http://127.0.0.1:9999/api/v1/register/', json=asd, headers=headers)
+    response = requests.post('http://127.0.0.1:8000/api/v1/register/', json=asd, headers=headers)
+    print(response.ok)
+    print(response.status_code)
     print(response.text)
+    if str(response.ok) == 'False':
+        return str(response.text)
+    else:
+        return 'OK'
 
 
 @dp.message_handler(commands=['register'], state=None)
-async def cm_start(message : types.Message):
+async def cm_start(message: types.Message):
 
     await FSMAdmin.username.set()
     await message.reply('Напиши свой username')
@@ -57,7 +61,7 @@ async def cm_start(message : types.Message):
 
 @dp.message_handler(state=FSMAdmin.username)
 async def load_username(message: types.Message, state: FSMContext):
-    rer = requests.get(' http://127.0.0.1:9999/api/v1/accountlist/').json()
+    rer = requests.get(' http://127.0.0.1:8000/api/v1/accountlist/').json()
     rdr = [i['username'] for i in rer]
     print(rdr)
     if message.text not in rdr:
@@ -81,37 +85,22 @@ async def load_password(message : types.Message, state: FSMContext):
 async def load_password2(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
         data['password2'] = message.text
-    await FSMAdmin.next()
+        data['tg'] = str(message.chat.id)
+        data['last_name'] = str(message.chat.last_name)
+        data['first_name'] = str(message.chat.first_name)
     await message.reply('Введи свою почту')
+    await FSMAdmin.next()
 
 
 @dp.message_handler(state=FSMAdmin.email)
 async def load_email(message : types.Message, state: FSMContext):
     async with state.proxy() as data:
         data['email'] = message.text
-    await FSMAdmin.next()
-    await message.reply('Введи свое имя')
-
-
-@dp.message_handler(state=FSMAdmin.first_name)
-async def load_first_name(message : types.Message, state: FSMContext):
-    async with state.proxy() as data:
-        data['first_name'] = message.text
-    await FSMAdmin.next()
-    await message.reply('Введи свою фамилию')
-
-
-@dp.message_handler(state=FSMAdmin.last_name)
-async def load_last_name(message : types.Message, state: FSMContext):
-    async with state.proxy() as data:
-        data['last_name'] = message.text
-        data['tg'] = str(message.chat.id)
-        global a
         asd = dict(data)
-    print(asd)
+        print(asd)
     await state.finish()
     await message.reply('Ожидайте')
-    postreg(asd)
+    await message.reply(str(postreg(asd)))
 
 
 @dp.message_handler(commands=['start', 'help'])
