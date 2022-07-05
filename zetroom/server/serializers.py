@@ -64,3 +64,49 @@ class AccountListSerializer(serializers.ModelSerializer):
         model = Account
         fields = ['username', 'username_tg', 'tg']
 
+
+class CourseListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Course
+        fields = '__all__'
+
+
+class StudensSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Account
+        fields = '__all__'
+
+
+class GroupListSerializer(serializers.ModelSerializer):
+    students = StudensSerializer(many=True)
+
+    class Meta:
+        model = Group
+        fields = '__all__'
+
+
+
+class ApplicationListSerializer(serializers.ModelSerializer):
+    account = StudensSerializer(many=True)
+
+    class Meta:
+        model = Application
+        fields = '__all__'
+
+    def create(self, validated_data):
+        account = Account.objects.get(tg=validated_data['account'])
+        application = Application(
+            account=account,
+            course=validated_data['course']
+        )
+        course = Course.objects.get(id=validated_data['course'])
+
+        payload = {
+            "text": f"Только что оставили заявку на курс по {course.title} {account.first_name}\nЧеловек по имени {account.last_name}\nЕго тг {account.username_tg}",
+            "chat_id": '-1001519795077',
+        }
+
+        response = requests.post(url, json=payload)
+        return application
+

@@ -21,3 +21,9 @@ class SuperAccountListView(generics.ListAPIView):
     queryset = Account.objects.filter(is_staff=True)
     permission_classes = (AllowAny,)
     serializer_class = AccountListSerializer
+
+
+class CourseListView(generics.ListAPIView):
+    queryset = Course.objects.all()
+    permission_classes = (AllowAny,)
+    serializer_class = CourseListSerializer

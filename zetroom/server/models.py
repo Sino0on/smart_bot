@@ -44,6 +44,7 @@ class Group(models.Model):
     course = models.ForeignKey(Course, on_delete=models.CASCADE)
     maxstudent = models.IntegerField()
     date = models.DateTimeField(auto_now_add=True)
+    students = models.ManyToManyField(Account)
 
     def __str__(self):
         return f'{self.title}  {self.course}'
