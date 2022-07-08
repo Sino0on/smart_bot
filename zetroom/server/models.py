@@ -18,7 +18,7 @@ class Course(models.Model):
     title = models.CharField(max_length=100)
     description = models.TextField()
     duration = models.CharField(max_length=100, blank=True, null=True)
-    price = models.DecimalField(decimal_places=1000, max_digits=100000, blank=True, null=True)
+    price = models.DecimalField(decimal_places=1, max_digits=10, blank=True, null=True)
     hour = models.IntegerField()
     date = models.DateTimeField(auto_now_add=True)
 

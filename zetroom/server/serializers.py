@@ -62,7 +62,7 @@ class RegisterSerializer(serializers.ModelSerializer):
 class AccountListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Account
-        fields = ['username', 'username_tg', 'tg']
+        fields = ['id', 'username', 'username_tg', 'tg']
 
 
 class CourseListSerializer(serializers.ModelSerializer):
@@ -86,21 +86,28 @@ class GroupListSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-
 class ApplicationListSerializer(serializers.ModelSerializer):
-    account = StudensSerializer(many=True)
+    account = StudensSerializer()
+    course = CourseListSerializer()
 
     class Meta:
         model = Application
         fields = '__all__'
 
+
+class ApplicationCreateAPI(serializers.Serializer):
+
+    account = serializers.IntegerField()
+    course = serializers.IntegerField()
+
     def create(self, validated_data):
         account = Account.objects.get(tg=validated_data['account'])
+        course = Course.objects.get(id=validated_data['course'])
+
         application = Application(
             account=account,
-            course=validated_data['course']
-        )
-        course = Course.objects.get(id=validated_data['course'])
+            course=course
+        ).save()
 
         payload = {
             "text": f"Только что оставили заявку на курс по {course.title} {account.first_name}\nЧеловек по имени {account.last_name}\nЕго тг {account.username_tg}",
@@ -108,5 +115,5 @@ class ApplicationListSerializer(serializers.ModelSerializer):
         }
 
         response = requests.post(url, json=payload)
-        return application
 
+        return {}

@@ -7,9 +7,10 @@ import requests
 import json
 import re
 
-
+from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardRemove
 
 import request
+markup = InlineKeyboardMarkup()
 
 url = "https://api.telegram.org/bot5346235377:AAGg1mWc4FPRxGn1GFcnOBcj75MMLlrAJlA/sendMessage"
 
@@ -48,12 +49,26 @@ logging.basicConfig(level=logging.INFO)
 bot = Bot(token=API_TOKEN)
 dp = Dispatcher(bot, storage=storage)
 
+def authuser(tgid):
+    rer = requests.get(' http://127.0.0.1:8000/api/v1/accountlist/').json()
+    rdr = [f"{i['tg']}" for i in rer]
+    if str(tgid) in rdr:
+        return True
+    else:
+        return False
+
+
+def authadmin(tgid):
+    rer = requests.get(' http://127.0.0.1:8000/api/v1/superaccountlist/').json()
+    rdr = [f"{i['tg']}" for i in rer]
+    if str(tgid) in rdr:
+        return True
+    else:
+        return False
+
 
 def postreg(asd):
     response = requests.post('http://127.0.0.1:8000/api/v1/register/', json=asd, headers=headers)
-    print(response.ok)
-    print(response.status_code)
-    print(response.text)
     if str(response.ok) == 'False':
         return str(response.text)
     else:
@@ -92,9 +107,10 @@ async def cm_start(message: types.Message):
     rer = requests.get(' http://127.0.0.1:8000/api/v1/accountlist/').json()
     rdr = [i['username_tg'] for i in rer]
     rdr2 = [i['tg'] for i in rer]
-    if '@' + str(message.chat.username) in rdr or message.chat.id in rdr2:
+    print(rer)
+    if str(message.from_user.id) in rdr2:
         await message.reply('Ты уже зарегистрирован')
-    elif len(str(message.chat.id)) <= 9:
+    elif len(str(message.chat.id)) <= 11:
         await FSMAdmin.username.set()
         await message.reply('Напиши свой username')
     else:
@@ -168,18 +184,132 @@ async def load_email(message: types.Message, state: FSMContext):
         await message.reply('Некорректный email')
 
 
+@dp.message_handler(commands=['application'])
+async def course_detail(message: types.Message, id):
+    print(True)
+    markup = InlineKeyboardMarkup(row_width=2)
+    courses = requests.get('http://127.0.0.1:8000/api/v1/courselist/').json()
+    for i in courses:
+        if i['id'] == id:
+            print('DAstan')
+            course = i
+            break
+        else:
+            course = 'no'
+    inline_btn_1 = InlineKeyboardButton('Записаться', callback_data=f'create{id}')
+    markup.add(inline_btn_1)
+    await message.answer(f'{course}', reply_markup=markup)
+
+
 @dp.message_handler(commands=['start', 'help'])
 async def send_welcome(message: types.Message):
-    """
-    This handler will be called when user sends `/start` or `/help` command
-    """
-    await message.reply("Hi!\nI'm EchoBot!\nPowered by aiogram.")
+    markup = InlineKeyboardMarkup(row_width=2)
+    if authuser(message.from_user.id):
+        inline_btn_1 = InlineKeyboardButton('Курсы', callback_data='courses')
+        markup.add(inline_btn_1)
+        await message.answer("Курсы", reply_markup=markup)
+    else:
+        await message.answer('Зарегиструйтесь')
 
+
+@dp.message_handler(commands=['admin'])
+async def admin_welcome(message: types.Message):
+    markup = InlineKeyboardMarkup(row_width=2)
+    if authadmin(message.from_user.id):
+        inline_btn_1 = InlineKeyboardButton('Курсы', callback_data='courses')
+        markup.add(inline_btn_1)
+        inline_btn_1 = InlineKeyboardButton('Заявки', callback_data='applicationlist')
+        markup.add(inline_btn_1)
+        await message.answer("Приветсвую Админ", reply_markup=markup)
+    else:
+        await message.answer('Вы не админ')
+
+@dp.message_handler()
+async def accept(message: types.Message, data):
+    await message.delete()
+    markup = InlineKeyboardMarkup(row_width=2)
+    markup.add(InlineKeyboardButton('Accept', callback_data=f'applicationfor{data["id"]}'))
+    markup.add(InlineKeyboardButton('Ignore', callback_data='Ignore'))
+    await message.answer(f'{data["account"]["username"]}, {data["account"]["username_tg"]}\n{data["course"]["title"]}', reply_markup=markup)
+
+
+@dp.callback_query_handler()
+async def process_callback(call: types.CallbackQuery):
+    print(call.data)
+    courses = requests.get('http://127.0.0.1:8000/api/v1/courselist/').json()
+    if call.data == 'courses':
+        markup = InlineKeyboardMarkup(row_width=2)
+
+        markup.clean()
+        for i in courses:
+            inline_btn_1 = InlineKeyboardButton(i['title'], callback_data=i['id'])
+            markup.add(inline_btn_1)
+        await bot.delete_message(call.from_user.id, call.message.message_id)
+        await bot.send_message(chat_id=call.from_user.id, text='Курсы по программированию', reply_markup=markup)
+    if str(call.data).isdigit():
+        for i in courses:
+            if str(call.data) == str(i['id']):
+                await bot.delete_message(call.from_user.id, call.message.message_id)
+                await course_detail(message=call.message, id=i['id'])
+    elif 'create' in str(call.data):
+        for i in courses:
+            print(call.data)
+            if str(call.data) == f'create{i["id"]}':
+                markup = InlineKeyboardMarkup(row_width=2)
+                print('da')
+                print(type(call.from_user.id))
+                rer = requests.get(' http://127.0.0.1:8000/api/v1/accountlist/').json()
+                account = call.from_user.id
+                print(rer)
+                # for j in rer:
+                #     if j['tg'] == call.from_user.id:
+                #         account = j['id']
+
+                print(int(account))
+                payload = {
+                    "account": int(account),
+                    "course": i['id'],
+                }
+                print(payload)
+                response = requests.post('http://127.0.0.1:8000/api/v1/applicationcreate/', json=payload)
+                print(response.ok)
+                if response.ok == True:
+                    await bot.delete_message(call.from_user.id, call.message.message_id)
+                    inline_btn_1 = InlineKeyboardButton('Домой', callback_data='home')
+                    inline_btn_2 = InlineKeyboardButton('Курсы', callback_data='courses')
+                    markup.add(inline_btn_1, inline_btn_2)
+                    await bot.send_message(text=f'Вы оставили заявку на {i["title"]}', chat_id=call.from_user.id, reply_markup=markup)
+                    await send_welcome(message=call.message)
+                else:
+                    await bot.delete_message(call.from_user.id, call.message.message_id)
+                    inline_btn_1 = InlineKeyboardButton('Домой', callback_data='home')
+                    inline_btn_2 = InlineKeyboardButton('Курсы', callback_data='courses')
+                    markup.add(inline_btn_1, inline_btn_2)
+                    await bot.send_message(text='Ошибка, походу вы уже отправляли заявку, либо тут моя ошибка', chat_id=call.from_user.id, reply_markup=markup)
+
+    if str(call.data) == 'applicationlist':
+        await call.message.delete()
+        markup = InlineKeyboardMarkup(row_width=1)
+        rer = requests.get(' http://127.0.0.1:8000/api/v1/applicationlist/').json()
+        for i in rer:
+            inline_btn_1 = InlineKeyboardButton(f'{i["account"]["username"]} {i["course"]["title"]}', callback_data=f"applicationfor{i['id']}")
+            markup.add(inline_btn_1)
+        await bot.send_message(text='Заявки', chat_id=call.from_user.id, reply_markup=markup)
+    if call.data == 'home':
+        await call.message.delete()
+        await send_welcome(message=call.message)
+    if 'applicationfor' in call.data:
+        rer = requests.get(' http://127.0.0.1:8000/api/v1/applicationlist/').json()
+        for i in rer:
+            if str(i['id']) == str(call.data)[-1]:
+                await accept(message=call.message, data=i)
 
 # @dp.message_handler()
 # async def echo(message: types.Message):
 #
 #     await message.answer(message.chat.id)
+
+
 
 
 if __name__ == '__main__':
