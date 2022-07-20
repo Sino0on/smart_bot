@@ -62,7 +62,7 @@ class RegisterSerializer(serializers.ModelSerializer):
 class AccountListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Account
-        fields = ['id', 'username', 'username_tg', 'tg']
+        fields = '__all__'
 
 
 class CourseListSerializer(serializers.ModelSerializer):
@@ -78,9 +78,23 @@ class StudensSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+class MeetApplicationSerializer(serializers.ModelSerializer):
+    # account = StudensSerializer(many=True)
+
+    class Meta:
+        model = ApplicationMet
+        fields = '__all__'
+
+
 class GroupListSerializer(serializers.ModelSerializer):
     students = StudensSerializer(many=True)
 
+    class Meta:
+        model = Group
+        fields = '__all__'
+
+
+class GroupUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Group
         fields = '__all__'
@@ -92,6 +106,13 @@ class ApplicationListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Application
+        fields = ['id', 'account', 'course', 'date']
+
+
+class MeetingListSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Meeting
         fields = '__all__'
 
 
@@ -111,6 +132,29 @@ class ApplicationCreateAPI(serializers.Serializer):
 
         payload = {
             "text": f"Только что оставили заявку на курс по {course.title} {account.first_name}\nЧеловек по имени {account.last_name}\nЕго тг {account.username_tg}",
+            "chat_id": '-1001519795077',
+        }
+
+        response = requests.post(url, json=payload)
+
+        return {}
+
+
+class ApplicationMetAPI(serializers.Serializer):
+    account = serializers.IntegerField()
+    meeting = serializers.IntegerField()
+
+    def create(self, validated_data):
+        account = Account.objects.get(tg=validated_data['account'])
+        meeting = Meeting.objects.get(id=validated_data['meeting'])
+
+        application = ApplicationMet(
+            account=account,
+            meeting=meeting
+        ).save()
+
+        payload = {
+            "text": f"Только что оставили заявку на мероприятие {meeting.title} {account.first_name}\nЧеловек по имени {account.last_name}\nЕго тг {account.username_tg}",
             "chat_id": '-1001519795077',
         }
 

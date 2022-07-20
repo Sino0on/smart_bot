@@ -20,6 +20,7 @@ class Course(models.Model):
     duration = models.CharField(max_length=100, blank=True, null=True)
     price = models.DecimalField(decimal_places=1, max_digits=10, blank=True, null=True)
     hour = models.IntegerField()
+    image = models.ImageField(upload_to='images/courses/', blank=True, null=True)
     date = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
@@ -88,6 +89,7 @@ class Application(models.Model):
 class Meeting(models.Model):
     title = models.CharField(max_length=200)
     description = models.TextField()
+    image = models.ImageField(upload_to='images/meeting/', blank=True, null=True)
     date = models.DateTimeField(auto_now_add=True)
     finish_date = models.DateTimeField()
 
@@ -106,15 +108,16 @@ class ImageMet(models.Model):
 
 
 class ApplicationMet(models.Model):
-    Account = models.ForeignKey(Account, on_delete=models.CASCADE)
+    account = models.ForeignKey(Account, on_delete=models.CASCADE)
     meeting = models.ForeignKey(Meeting, on_delete=models.CASCADE)
     date = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f'{self.Account} - {self.meeting}'
+        return f'{self.account} - {self.meeting}'
 
     class Meta:
         verbose_name = 'Заявка на мероприятие'
         verbose_name_plural = 'Заявки на мероприятие'
         ordering = ['-date']
+        unique_together = ['account', 'meeting']
 
