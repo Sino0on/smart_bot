@@ -53,6 +53,18 @@ bot = Bot(token=API_TOKEN)
 dp = Dispatcher(bot, storage=storage)
 
 
+def rassylka(text, group=None, student=None, course=None, groupmet=None):
+    if group:
+        for i in group["students"]:
+            json = {"text": text, "chat_id": i["tg"]}
+            rer = requests.post(url=url, json=json)
+    elif student:
+        json = {"text": text, "chat_id": student["tg"]}
+        rer = requests.post(url=url, json=json)
+    elif course:
+
+
+
 def authuser(tgid):
     rer = requests.get(f'{host_url}api/v1/accountlist/').json()
     rdr = [f"{i['tg']}" for i in rer]
@@ -81,7 +93,7 @@ def postreg(asd):
 
 @dp.message_handler(commands=['newsletter'], state=None)
 async def cm_start(message: types.Message):
-    rer = requests.get(f'{host_url}/api/v1/superaccountlist/').json()
+    rer = requests.get(f'{host_url}api/v1/superaccountlist?json').json()
     print(message.from_user.id)
     rdr = [i['tg'] for i in rer]
     print(rdr)
@@ -209,6 +221,8 @@ async def course_detail(message: types.Message, id):
     if authadmin(message.chat.id):
         inline_btn_1 = InlineKeyboardButton('Группы', callback_data=f'groups-{id}')
         markup.add(inline_btn_1)
+    inline_btn_1 = InlineKeyboardButton('Домой', callback_data=f'home')
+    markup.add(inline_btn_1)
     try:
         await message.answer_photo(photo=f'{course["image"]}', caption=f'{course["title"]}\n{course["description"]}\nКурс длиться {course["duration"]}\nКаждое занятие по {course["hour"]} часа\nКаждый месяц по {course["price"]}', reply_markup=markup)
     except:
@@ -235,6 +249,8 @@ async def meet_detail(message: types.Message, id):
     markup.add(inline_btn_1)
     inline_btn_1 = InlineKeyboardButton('Назад 🚫', callback_data=f'meeting')
     markup.add(inline_btn_1)
+    inline_btn_1 = InlineKeyboardButton('Домой', callback_data=f'home')
+    markup.add(inline_btn_1)
     try:
         await message.answer_photo(photo=f'{meeting_detail["image"]}', caption=f'{meeting_detail["title"]}\n{meeting_detail["description"]}\n', reply_markup=markup)
     except:
@@ -246,16 +262,16 @@ async def send_welcome(message: types.Message):
     markup = InlineKeyboardMarkup(row_width=2)
     if authuser(message.from_user.id):
         inline_btn_1 = InlineKeyboardButton('Курсы 💻', callback_data='courses')
-        inline_btn_2 = InlineKeyboardButton('🎊 Мероприятия 🎊', callback_data='meeting')
+        inline_btn_2 = InlineKeyboardButton('📅 Мероприятия 🎊', callback_data='meeting')
         markup.add(inline_btn_1)
 
         markup.add(inline_btn_2)
         await message.answer(
             '''Привет👋, Я Зи 
 Aссистент компании Zetroom💡
-Я помогу как тут все устроено
+Я помогу тебе разобраться как тут все устроено
 Если ты хочешь оставить заявку на курсы то нажми \n"Курсы 💻"
-А если ты хочешь посмотреть наши мероприятия то нажми \n"🎊 Мероприятия 🎊"''', reply_markup=markup)
+А если ты хочешь посмотреть наши мероприятия то нажми \n"📅 Мероприятия 🎊"''', reply_markup=markup)
     else:
         inline_btn_1 = InlineKeyboardButton('Зарегистрироваться 📲', callback_data='register')
         markup.add(inline_btn_1)
@@ -277,12 +293,15 @@ async def admin_welcome(message: types.Message):
 
 
 @dp.message_handler(commands=['dastan'])
-async def accept(message: types.Message, data):
-    await message.delete()
+async def accept(message: types.Message):
+    data = requests.get(f'{host_url}api/v1/accountlist?tg={message.from_user.id}')
+    # await message.delete()
     markup = InlineKeyboardMarkup(row_width=2)
     print(data)
     markup.add(InlineKeyboardButton('Принять ✅', callback_data=f'acceptapplication-{data["id"]}'))
     markup.add(InlineKeyboardButton('Отказ 🚫', callback_data=f'Ignore-{data["id"]}'))
+    inline_btn_1 = InlineKeyboardButton('Домой', callback_data=f'home')
+    markup.add(inline_btn_1)
     await message.answer(f'{data["account"]["username"]}, {data["account"]["username_tg"]}\n{data["course"]["title"]}',
                          reply_markup=markup)
 
@@ -307,10 +326,17 @@ async def process_callback(call: types.CallbackQuery):
         markup = InlineKeyboardMarkup(row_width=2)
 
         markup.clean()
+        print(call.message.text)
+        print('Привет' not in call.message.text)
+        if 'Привет' not in call.message.text:
+            await bot.delete_message(call.from_user.id, call.message.message_id)
+
         for i in courses:
             inline_btn_1 = InlineKeyboardButton(i['title'], callback_data=i['id'])
             markup.add(inline_btn_1)
-        await bot.send_message(chat_id=call.from_user.id, text='Все наши курсы', reply_markup=markup)
+        inline_btn_1 = InlineKeyboardButton('Домой', callback_data=f'home')
+        markup.add(inline_btn_1)
+        await bot.send_message(chat_id=call.from_user.id, text='Здесь у нас все актуальные курсы, зайдя в них вы можете оставить заявки либо подробнее узнать о курсах 🌐', reply_markup=markup)
     if 'groups' in call.data:
         await bot.delete_message(call.from_user.id, call.message.message_id)
         rer = requests.get(f'{host_url}api/v1/grouplistbot').json()
@@ -322,6 +348,8 @@ async def process_callback(call: types.CallbackQuery):
             if str(i['id']) == call.data.split('-')[-1]:
                 inline_btn_1 = InlineKeyboardButton(i['title'], callback_data=f'groupdetail-{i["id"]}')
                 markup.add(inline_btn_1)
+        inline_btn_1 = InlineKeyboardButton('Домой', callback_data=f'home')
+        markup.add(inline_btn_1)
         await bot.send_message(chat_id=call.from_user.id, text='Группы', reply_markup=markup)
     if 'groupdetail' in call.data:
         await bot.delete_message(call.from_user.id, call.message.message_id)
@@ -350,12 +378,18 @@ async def process_callback(call: types.CallbackQuery):
     if call.data == 'meeting':
 
         markup = InlineKeyboardMarkup(row_width=2)
+        print(call.message.text)
+        print('Привет' not in call.message.text)
+        if 'Привет' not in call.message.text:
+            await bot.delete_message(call.from_user.id, call.message.message_id)
 
         markup.clean()
         for i in meetings:
             inline_btn_1 = InlineKeyboardButton(i['title'], callback_data=f"meetdetail-{i['id']}")
             markup.add(inline_btn_1)
-        await bot.send_message(chat_id=call.from_user.id, text='Мероприятия', reply_markup=markup)
+        inline_btn_1 = InlineKeyboardButton('Домой', callback_data=f'home')
+        markup.add(inline_btn_1)
+        await bot.send_message(chat_id=call.from_user.id, text='Здесь вы можете просмотреть актуальные ближайщие мероприятия\nНажав вы можете просмотреть детально, а также можете зписаться 🗓', reply_markup=markup)
     if 'meetdetail' in str(call.data):
         for i in meetings:
             if str(call.data).split('-')[-1] == str(i['id']):
@@ -366,6 +400,8 @@ async def process_callback(call: types.CallbackQuery):
             if str(call.data) == str(i['id']):
                 await bot.delete_message(call.from_user.id, call.message.message_id)
                 await course_detail(message=call.message, id=i['id'])
+    if call.data == 'home':
+        await bot.delete_message(call.from_user.id, call.message.message_id)
     if 'createmet' in str(call.data):
         for i in meetings:
             if str(call.data) == f'createmet{i["id"]}':
@@ -383,6 +419,7 @@ async def process_callback(call: types.CallbackQuery):
                     # inline_btn_1 = InlineKeyboardButton('Домой', callback_data='home')
                     # inline_btn_2 = InlineKeyboardButton('Курсы', callback_data='courses')
                     # markup.add(inline_btn_1, inline_btn_2)
+
                     await bot.answer_callback_query(callback_query_id=call.id,
                                                     text=f'Вы оставили заявку на мероприятие {i["title"]}',
                                                     show_alert=True)
@@ -446,19 +483,36 @@ async def process_callback(call: types.CallbackQuery):
             inline_btn_1 = InlineKeyboardButton(f'{i["account"]["username"]} {i["course"]["title"]}',
                                                 callback_data=f"applicationfor-{i['id']}")
             markup.add(inline_btn_1)
+        inline_btn_1 = InlineKeyboardButton('Домой', callback_data=f'home')
+        markup.add(inline_btn_1)
         await bot.send_message(text='Заявки', chat_id=call.from_user.id, reply_markup=markup)
     if call.data == 'home':
         await call.message.delete()
         await send_welcome(message=call.message)
     if 'student' in call.data:
         rer = requests.get(f'{host_url}api/v1/accountlist/?id={call.data.split("-")[-1]}').json()
+        markup = InlineKeyboardMarkup()
+        inline_btn_1 = InlineKeyboardButton('Домой', callback_data=f'home')
+        markup.add(inline_btn_1)
         if str(rer) != '[]':
             await bot.send_message(chat_id=call.from_user.id, text=rer)
     if 'applicationfor' in call.data:
         rer = requests.get(f'{host_url}api/v1/applicationlist/').json()
         for i in rer:
             if str(i['id']) == str(call.data).split('-')[-1]:
-                await accept(message=call.message, data=i)
+                print(i)
+                data = i
+                markup = InlineKeyboardMarkup()
+                markup.add(InlineKeyboardButton('Принять ✅', callback_data=f'acceptapplication-{data["id"]}'))
+                markup.add(InlineKeyboardButton('Отказ 🚫', callback_data=f'Ignore-{data["id"]}'))
+                inline_btn_1 = InlineKeyboardButton('Домой', callback_data=f'home')
+                markup.add(inline_btn_1)
+
+                await bot.send_message(chat_id=call.from_user.id,
+                    text=f'{data["account"]["username"]}, {data["account"]["username_tg"]}\n{data["course"]["title"]}',
+                    reply_markup=markup)
+                # await accept(message=call.message, data=i)
+                break
     if 'acceptapplication' in call.data:
         rer = requests.get(f'{host_url}api/v1/grouplist/').json()
         rar = requests.get(f'{host_url}api/v1/applicationlist/').json()
@@ -479,6 +533,8 @@ async def process_callback(call: types.CallbackQuery):
                 markup.add(btn)
         btn = InlineKeyboardButton(text=f'Создать новую группу', callback_data=f'addnewcoursegroup')
         markup.add(btn)
+        inline_btn_1 = InlineKeyboardButton('Домой', callback_data=f'home')
+        markup.add(inline_btn_1)
         await bot.send_message(text='В какую группу желаете добавить?', chat_id=call.from_user.id, reply_markup=markup)
     if 'addnewcoursegroup' == call.data:
         await bot.send_message(text='Извините но эта функция на разработке', chat_id=call.from_user.id)
@@ -497,11 +553,13 @@ async def process_callback(call: types.CallbackQuery):
         print(application)
         if application['account']['id'] not in group['students']:
             group['students'].append(application['account']['id'])
+            das = requests.post(url, json={"chat_id": application['account']["id"], "text": f"Вас успешно добавили в группу {group['title']}"})
             print(group)
+            print(das)
             response = requests.request(method='PUT',
                                         url=f"{host_url}api/v1/groupupdate/{str(call.data.split('-')[-2])}", json=group)
             print(response.text)
-            deler = requests.delete(f"{host_url}api/v1/applicationdelete/{application['id']}").json()
+            deler = requests.delete(f"{host_url}api/v1/applicationdelete/{application['id']}")
             print(deler)
             await bot.send_message(chat_id=application['account']['tg'], text=f'Вас добавили в группу {group["title"]}\nОжидайте дальнейщих указаний 🥳')
             await bot.answer_callback_query(callback_query_id=call.id,
