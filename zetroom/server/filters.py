@@ -14,3 +14,10 @@ class MeetApplFilter(django_filters.FilterSet):
     class Meta:
         model = ApplicationMet
         fields = ('id', 'meeting')
+
+
+class GroupFilter(django_filters.FilterSet):
+
+    class Meta:
+        model = Group
+        fields = '__all__'

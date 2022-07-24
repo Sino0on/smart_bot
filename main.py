@@ -11,6 +11,8 @@ from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeybo
 
 import request
 
+ras = ''
+
 markup = InlineKeyboardMarkup()
 
 url = "https://api.telegram.org/bot5346235377:AAGg1mWc4FPRxGn1GFcnOBcj75MMLlrAJlA/sendMessage"
@@ -53,7 +55,7 @@ bot = Bot(token=API_TOKEN)
 dp = Dispatcher(bot, storage=storage)
 
 
-def rassylka(text, group=None, student=None, course=None, groupmet=None):
+def rassylka(text, group=None, student=None, course=None, groupmet=None, all=False):
     if group:
         for i in group["students"]:
             json = {"text": text, "chat_id": i["tg"]}
@@ -62,7 +64,21 @@ def rassylka(text, group=None, student=None, course=None, groupmet=None):
         json = {"text": text, "chat_id": student["tg"]}
         rer = requests.post(url=url, json=json)
     elif course:
-
+        for i in course:
+            json = {"text": text, "chat_id": i["tg"]}
+            rer = requests.post(url=url, json=json)
+    elif groupmet:
+        for i in groupmet:
+            print(i)
+            student = requests.get(f'{host_url}api/v1/accountlist/?id={i["account"]}').json()
+            print(student)
+            json = {"text": text, "chat_id": student[0]["tg"]}
+            rer = requests.post(url=url, json=json)
+    elif all:
+        rer = requests.get(f'{host_url}api/v1/accountlist').json()
+        for i in rer:
+            json = {"text": text, "chat_id": i["tg"]}
+            rer = requests.post(url=url, json=json)
 
 
 def authuser(tgid):
@@ -92,30 +108,70 @@ def postreg(asd):
 
 
 @dp.message_handler(commands=['newsletter'], state=None)
-async def cm_start(message: types.Message):
+async def rassylka_start(message: types.Message):
     rer = requests.get(f'{host_url}api/v1/superaccountlist?json').json()
-    print(message.from_user.id)
+    print(message)
+    # print(message.reply_markup.inline_keyboard[-1][0])
+    print(message.reply_markup.inline_keyboard[-1][0]["callback_data"])
+
+    print(message.reply_markup.inline_keyboard)
+    for i in message.reply_markup.inline_keyboard:
+        print(i)
+        if 'send_letter' in i[0]["callback_data"]:
+            global ras
+            ras = i[0]["callback_data"]
+            break
+    print(ras)
+    # print(type(message.reply_markup.inline_keyboard[1][0]))
     rdr = [i['tg'] for i in rer]
-    print(rdr)
-    if str(message.from_user.id) in rdr:
+    # print(rdr)
+    if str(message.chat.id) in rdr:
         await FSMNewsletters.text.set()
-        await message.reply('Напишите текст который надо разослать всем')
+        await message.reply('Напишите текст который надо разослать')
     else:
         await message.reply('У вас недостаточно прав')
 
 
 @dp.message_handler(state=FSMNewsletters.text)
 async def load_username(message: types.Message, state: FSMContext):
-    rer = requests.get(f'{host_url}api/v1/accountlist/').json()
-    rdr = [f"{i['tg']}" for i in rer]
-    print(rdr)
-    try:
-        for i in rdr:
-            response = requests.post(url, json={"text": message.text, "chat_id": i}, headers=headers)
-    except:
-        await message.reply('Что то пошло не так')
+    print(ras+" send")
+    if ras == 'send_letter_all':
+        try:
+            rassylka(message.text, all=True)
+            print('Yes')
+            await message.answer('Сообщение отправлено😜')
+        except:
+            await message.reply('Что то пошло не так')
+    elif 'send_letter_student' in ras:
+        try:
+            student = requests.get(f'{host_url}api/v1/accountlist/?id={ras.split("-")[-1]}').json()
+            print(student)
+            rassylka(message.text, student=student[0])
+            print('Yes')
+            await message.answer('Сообщение отправлено😜')
+        except:
+            await message.reply('Что то пошло не так')
+    elif 'send_letter_group' in ras:
+        rer = requests.get(f'{host_url}api/v1/grouplist/?course={ras.split("-")[-1]}').json()
+        try:
+            print(rer)
+            rassylka(message.text, group=rer)
+            print('Yes')
+            await message.answer('Сообщение отправлено😜')
+        except:
+            await message.reply('Что то пошло не так')
+    elif 'send_letter_meet' in ras:
+        rer = requests.get(f'{host_url}api/v1/meetapplication/?meeting={ras.split("-")[-1]}').json()
+        try:
+            print(rer)
+            rassylka(message.text, groupmet=rer)
+            print('Yes')
+            await message.answer('Сообщение отправлено😜')
+        except:
+            await message.reply('Что то пошло не так')
+    elif ''
     await state.finish()
-    await message.answer('Все ок')
+
 
 
 @dp.message_handler(commands=['register'], state=None)
@@ -219,7 +275,9 @@ async def course_detail(message: types.Message, id):
     markup.add(inline_btn_1)
     print(message)
     if authadmin(message.chat.id):
-        inline_btn_1 = InlineKeyboardButton('Группы', callback_data=f'groups-{id}')
+        inline_btn_1 = InlineKeyboardButton('Группы 🔑', callback_data=f'groups-{id}')
+        markup.add(inline_btn_1)
+        inline_btn_1 = InlineKeyboardButton('Разослать всем сообщение 🔑', callback_data=f'send_letter_course-{id}')
         markup.add(inline_btn_1)
     inline_btn_1 = InlineKeyboardButton('Домой', callback_data=f'home')
     markup.add(inline_btn_1)
@@ -243,7 +301,9 @@ async def meet_detail(message: types.Message, id):
     print(id)
     print(message)
     if authadmin(message['chat']['id']):
-        inline_btn_1 = InlineKeyboardButton('Просмотреть заявки', callback_data=f'applicationmet-{id}')
+        inline_btn_1 = InlineKeyboardButton('Просмотреть заявки 🔑', callback_data=f'applicationmet-{id}')
+        markup.add(inline_btn_1)
+        inline_btn_1 = InlineKeyboardButton('Разослать всем сообщение 🔑', callback_data=f'send_letter_meet-{id}')
         markup.add(inline_btn_1)
     inline_btn_1 = InlineKeyboardButton('Записаться 📩', callback_data=f'createmet{id}')
     markup.add(inline_btn_1)
@@ -283,11 +343,13 @@ async def admin_welcome(message: types.Message):
     markup = InlineKeyboardMarkup(row_width=2)
     if authadmin(message.from_user.id):
         print(message)
-        inline_btn_1 = InlineKeyboardButton('Курсы', callback_data='courses')
+        inline_btn_1 = InlineKeyboardButton('Курсы 🔑', callback_data='courses')
         markup.add(inline_btn_1)
-        inline_btn_1 = InlineKeyboardButton('Заявки', callback_data='applicationlist')
+        inline_btn_1 = InlineKeyboardButton('Заявки 🔑', callback_data='applicationlist')
         markup.add(inline_btn_1)
-        await message.answer("Приветсвую Админ", reply_markup=markup)
+        inline_btn_1 = InlineKeyboardButton('Разослать всем сообщение 🔑', callback_data=f'send_letter_all')
+        markup.add(inline_btn_1)
+        await message.answer("Приветсвую Админ 🔑", reply_markup=markup)
     else:
         await message.answer('Вы не админ')
 
@@ -324,8 +386,7 @@ async def process_callback(call: types.CallbackQuery):
     if call.data == 'courses':
         print(call.message)
         markup = InlineKeyboardMarkup(row_width=2)
-
-        markup.clean()
+        print(courses)
         print(call.message.text)
         print('Привет' not in call.message.text)
         if 'Привет' not in call.message.text:
@@ -359,6 +420,8 @@ async def process_callback(call: types.CallbackQuery):
             if call.data.split('-')[-1] == str(i['id']):
                 group = i
                 break
+        inline_btn_1 = InlineKeyboardButton('Разослать всем сообщение 🔑', callback_data=f'send_letter_group-{group["id"]}')
+        markup.add(inline_btn_1)
         for i in group['students']:
             inline_btn_1 = InlineKeyboardButton(i['username'], callback_data=f'student-{i["id"]}')
             markup.add(inline_btn_1)
@@ -489,13 +552,22 @@ async def process_callback(call: types.CallbackQuery):
     if call.data == 'home':
         await call.message.delete()
         await send_welcome(message=call.message)
-    if 'student' in call.data:
+    if 'send_letter' in call.data:
+        await rassylka_start(message=call.message)
+            # await bot.send_message(text='Проверка', chat_id=call.from_user.id)
+    elif 'student' in call.data:
         rer = requests.get(f'{host_url}api/v1/accountlist/?id={call.data.split("-")[-1]}').json()
+        print(rer)
         markup = InlineKeyboardMarkup()
         inline_btn_1 = InlineKeyboardButton('Домой', callback_data=f'home')
         markup.add(inline_btn_1)
+        if authadmin(call.from_user.id):
+            inline_btn_1 = InlineKeyboardButton('Разослать сообщение', callback_data=f'send_letter_student-{rer[0]["id"]}')
+            markup.add(inline_btn_1)
         if str(rer) != '[]':
-            await bot.send_message(chat_id=call.from_user.id, text=rer)
+            await bot.send_message(chat_id=call.from_user.id, text=rer, reply_markup=markup)
+
+
     if 'applicationfor' in call.data:
         rer = requests.get(f'{host_url}api/v1/applicationlist/').json()
         for i in rer:

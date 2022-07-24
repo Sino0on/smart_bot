@@ -74,6 +74,8 @@ class GroupListView(generics.ListAPIView):
     queryset = Group.objects.all()
     permission_classes = (AllowAny, )
     serializer_class = GroupListSerializer
+    filter_backends = (filters.DjangoFilterBackend,)
+    filterset_class = GroupFilter
 
     # def get_serializer_context(self):
     #     return super().get_serializer_context().update({'account_tg': self.request.data['account']})
