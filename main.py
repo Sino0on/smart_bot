@@ -57,9 +57,10 @@ dp = Dispatcher(bot, storage=storage)
 
 def rassylka(text, group=None, student=None, course=None, groupmet=None, all=False):
     if group:
-        for i in group["students"]:
+        for i in group[0]["students"]:
             json = {"text": text, "chat_id": i["tg"]}
             rer = requests.post(url=url, json=json)
+            print(rer)
     elif student:
         json = {"text": text, "chat_id": student["tg"]}
         rer = requests.post(url=url, json=json)
@@ -169,7 +170,7 @@ async def load_username(message: types.Message, state: FSMContext):
             await message.answer('Сообщение отправлено😜')
         except:
             await message.reply('Что то пошло не так')
-    elif ''
+    # elif ''
     await state.finish()
 
 
@@ -252,6 +253,7 @@ async def load_email(message: types.Message, state: FSMContext):
         await state.finish()
         await message.reply('Ожидайте')
         await message.reply(str(postreg(asd)))
+        await send_welcome(message=message)
     else:
         await message.reply('Некорректный email')
 
