@@ -36,6 +36,8 @@ class FSMAdmin(StatesGroup):
     password2 = State()
     age = State()
     email = State()
+    first_name = State()
+    last_name = State()
     tg = State()
 
 
@@ -105,7 +107,7 @@ def postreg(asd):
     if str(response.ok) == 'False':
         return str(response.text)
     else:
-        return 'OK'
+        return '🎊Вы успешно прошли регистрацию🎉'
 
 
 @dp.message_handler(commands=['newsletter'], state=None)
@@ -196,17 +198,23 @@ async def load_username(message: types.Message, state: FSMContext):
     rdr = [i['username'] for i in rer]
     print(rdr)
     if message.text not in rdr:
-        async with state.proxy() as data:
-            data['username'] = message.text
-        await FSMAdmin.next()
-        await message.reply('Придумай пароль')
+        regex = "^[A-Za-z][A-Za-z0-9_]{3,29}$"
+        if re.search(regex, message.text):
+            async with state.proxy() as data:
+                data['username'] = message.text
+            await FSMAdmin.next()
+            await message.reply('Придумай пароль от 8 букв и цифр')
+        else:
+            await message.answer('Пропиши правильный username от 3 символов, без пробела и без эмодзи ❌')
     else:
-        await message.reply('Такой никнейм уже есть, попробуй другой')
+        await message.reply('Такой никнейм уже есть, попробуй другой ❌')
 
 
 @dp.message_handler(state=FSMAdmin.password)
 async def load_password(message: types.Message, state: FSMContext):
-    if len(message.text) >= 6:
+    regex = "^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$"
+    if re.fullmatch(regex, message.text):
+        await message.delete()
         async with state.proxy() as data:
             data['password'] = message.text
             if message.chat.username == '':
@@ -214,31 +222,37 @@ async def load_password(message: types.Message, state: FSMContext):
             else:
                 data['username_tg'] = '@' + str(message.chat.username)
         await FSMAdmin.next()
-        await message.reply('Повтори пароль')
+        await message.answer('Повтори пароль')
     else:
-        await message.reply('Пожалуйста придумайте сложный пароль')
+        await message.reply('Пожалуйста придумай сложный пароль от 8 букв и цифр 😭')
 
 
 @dp.message_handler(state=FSMAdmin.password2)
 async def load_password2(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
         if message.text == data['password']:
+            await message.delete()
             data['password2'] = message.text
             data['tg'] = str(message.chat.id)
             data['last_name'] = str(message.chat.last_name)
             data['first_name'] = str(message.chat.first_name)
-            await message.reply('Сколько тебе лет? 💫')
+            await message.answer('Сколько тебе лет? 💫')
             await FSMAdmin.next()
         else:
-            await message.reply('Пароли не схожи, Повторите попытку')
+            await message.reply('Пароли не схожи, Повторите попытку ❌')
 
 
 @dp.message_handler(state=FSMAdmin.age)
 async def load_password2(message: types.Message, state: FSMContext):
-    async with state.proxy() as data:
-        data['age'] = message.text
-    await message.reply('Введи свою почту')
-    await FSMAdmin.next()
+    if message.text.isdigit() and 3 < int(message.text) < 80:
+        async with state.proxy() as data:
+            data['age'] = message.text
+        await message.reply('Введи свою почту📩')
+        await FSMAdmin.next()
+    elif not message.text.isdigit():
+        await message.reply('Пропиши только цифры ❌')
+    elif int(message.text) > 80:
+        await message.reply('Ты живой? Повтори еще раз ❌')
 
 
 @dp.message_handler(state=FSMAdmin.email)
@@ -246,16 +260,36 @@ async def load_email(message: types.Message, state: FSMContext):
     regex = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'
 
     if re.fullmatch(regex, message.text):
+
         async with state.proxy() as data:
             data['email'] = message.text
             asd = dict(data)
             print(asd)
+        await FSMAdmin.next()
+        await message.answer('Введи свое имя')
+    else:
+        await message.reply('Некорректный email ❌')
+
+    @dp.message_handler(state=FSMAdmin.first_name)
+    async def load_first_name(message: types.Message, state: FSMContext):
+        async with state.proxy() as data:
+            data['first_name'] = message.text
+        await FSMAdmin.next()
+        await message.reply('Введи свою фамилию')
+
+    @dp.message_handler(state=FSMAdmin.last_name)
+    async def load_last_name(message: types.Message, state: FSMContext):
+        async with state.proxy() as data:
+            data['last_name'] = message.text
+            data['tg'] = str(message.chat.id)
+            global a
+            asd = dict(data)
+        print(asd)
         await state.finish()
         await message.reply('Ожидайте')
         await message.reply(str(postreg(asd)))
         await send_welcome(message=message)
-    else:
-        await message.reply('Некорректный email')
+        postreg(asd)
 
 
 @dp.message_handler(commands=['application'])
@@ -283,6 +317,7 @@ async def course_detail(message: types.Message, id):
         markup.add(inline_btn_1)
     inline_btn_1 = InlineKeyboardButton('Домой', callback_data=f'home')
     markup.add(inline_btn_1)
+    print(course['image'])
     try:
         await message.answer_photo(photo=f'{course["image"]}', caption=f'{course["title"]}\n{course["description"]}\nКурс длиться {course["duration"]}\nКаждое занятие по {course["hour"]} часа\nКаждый месяц по {course["price"]}', reply_markup=markup)
     except:
@@ -326,8 +361,11 @@ async def send_welcome(message: types.Message):
         inline_btn_1 = InlineKeyboardButton('Курсы 💻', callback_data='courses')
         inline_btn_2 = InlineKeyboardButton('📅 Мероприятия 🎊', callback_data='meeting')
         markup.add(inline_btn_1)
-
         markup.add(inline_btn_2)
+        markup.add(
+            InlineKeyboardButton('Наш сайт 🌐', url='https://surik00.gitbooks.io/aiogram-lessons/content/'),
+            InlineKeyboardButton('Наш инстаграмм 🌐', url='https://surik00.gitbooks.io/aiogram-lessons/content/'))
+
         await message.answer(
             '''Привет👋, Я Зи 
 Aссистент компании Zetroom💡
@@ -337,7 +375,7 @@ Aссистент компании Zetroom💡
     else:
         inline_btn_1 = InlineKeyboardButton('Зарегистрироваться 📲', callback_data='register')
         markup.add(inline_btn_1)
-        await message.answer('Привет, меня зовут Зи, я представляю компанию ZetRoom💡\nДля того чтобы просмотреть продолжить нужно для начало зарегистрироваться\nДля этого нажмите "Зарегистрироваться 📲"', reply_markup=markup)
+        await message.answer('Привет, меня зовут Зи, я представляю компанию ZetRoom💡\nДля того, чтобы продолжить просмотр, необходимо предварительно зарегистрироваться 📲"', reply_markup=markup)
 
 
 @dp.message_handler(commands=['admin'])
@@ -402,7 +440,7 @@ async def process_callback(call: types.CallbackQuery):
         await bot.send_message(chat_id=call.from_user.id, text='Здесь у нас все актуальные курсы, зайдя в них вы можете оставить заявки либо подробнее узнать о курсах 🌐', reply_markup=markup)
     if 'groups' in call.data:
         await bot.delete_message(call.from_user.id, call.message.message_id)
-        rer = requests.get(f'{host_url}api/v1/grouplistbot').json()
+        rer = requests.get(f'{host_url}api/v1/grouplistbot/?format=json').json()
         print(call.data)
         markup = InlineKeyboardMarkup()
         markup.clean()
@@ -416,7 +454,7 @@ async def process_callback(call: types.CallbackQuery):
         await bot.send_message(chat_id=call.from_user.id, text='Группы', reply_markup=markup)
     if 'groupdetail' in call.data:
         await bot.delete_message(call.from_user.id, call.message.message_id)
-        rer = requests.get(f'{host_url}api/v1/grouplist').json()
+        rer = requests.get(f'{host_url}api/v1/grouplist/?format=json').json()
         markup = InlineKeyboardMarkup(row_width=2)
         for i in rer:
             if call.data.split('-')[-1] == str(i['id']):

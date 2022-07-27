@@ -37,6 +37,7 @@ class RegisterSerializer(serializers.ModelSerializer):
             username=validated_data['username'],
             email=validated_data['email'],
             first_name=validated_data['first_name'],
+            name=validated_data['first_name'],
             last_name=validated_data['last_name'],
             tg=validated_data['tg'],
             username_tg=validated_data['username_tg']
@@ -45,7 +46,7 @@ class RegisterSerializer(serializers.ModelSerializer):
         user.set_password(validated_data['password'])
         user.save()
         payload = {
-            "text": f"Вы успешно зарегистрировались\nВаш никнейм {validated_data['username']}\nВаш пароль {validated_data['password'][0:3]}{(len(validated_data['password'])-3)*'*'}",
+            "text": f"Вы успешно зарегистрировались✅\nВаш никнейм {validated_data['username']}\nВаш пароль {validated_data['password'][0:3]}{(len(validated_data['password'])-3)*'*'}",
             "chat_id": validated_data['tg'],
         }
 
