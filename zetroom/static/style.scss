@@ -1,0 +1,30 @@
+*,
+*::after,
+*::before {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    // overflow-x: hidden;
+    background: url(../assets/images/gradient.jpg);
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: top;
+    // background-color: #011B47;
+}
+
+.container {
+    // position: relative;
+    max-width: 1270px;
+    max-height: 7000px;
+    margin: 0 auto;
+    padding: 0 15px;
+}
+
+@import "./SCSS/index";
+@import "./SCSS/vars";
+@import "./SCSS/header";
+@import "./SCSS/main";
+@import "./SCSS/footer";

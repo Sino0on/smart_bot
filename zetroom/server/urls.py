@@ -1,7 +1,8 @@
-from django.urls import path
+from django.urls import path, include
 from .views import *
 
 urlpatterns = [
+    path('', include('mysite.urls')),
     path('register/', RegisterView.as_view()),
     path('accountlist/', AccountListView.as_view()),
     path('superaccountlist/', SuperAccountListView.as_view()),

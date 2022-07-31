@@ -121,3 +121,32 @@ class ApplicationMet(models.Model):
         ordering = ['-date']
         unique_together = ['account', 'meeting']
 
+
+class Question(models.Model):
+    title = models.CharField(max_length=255)
+    answer = models.TextField()
+    Course = models.ForeignKey(blank=True, null=True, to=Course, on_delete=models.CASCADE)
+    datetime = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f'{self.title}'
+
+    class Meta:
+        verbose_name = 'Вопрос'
+        verbose_name_plural = 'Вопросы'
+        ordering = ['-datetime']
+
+
+class Feedback(models.Model):
+    name = models.CharField(max_length=100)
+    phone = models.CharField(max_length=100)
+    date = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f'{self.name}'
+
+    class Meta:
+        verbose_name = 'Заявка сайт'
+        verbose_name_plural = 'Заявки сайт'
+        ordering = ['-date']
+
