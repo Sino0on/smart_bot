@@ -7,7 +7,7 @@ import requests
 import json
 import re
 
-from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardRemove
+from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardRemove, InputFile
 
 import request
 
@@ -365,9 +365,11 @@ async def send_welcome(message: types.Message):
         markup.add(
             InlineKeyboardButton('Наш сайт 🌐', url='https://surik00.gitbooks.io/aiogram-lessons/content/'),
             InlineKeyboardButton('Наш инстаграмм 🌐', url='https://surik00.gitbooks.io/aiogram-lessons/content/'))
+        markup.add(InlineKeyboardButton('Наш менеджер', url='t.me//Sino0on'))
 
-        await message.answer(
-            '''Привет👋, Я Зи 
+        await message.answer_photo(
+            photo='https://sun9-west.userapi.com/sun9-3/s/v1/ig2/keq9VmIk4Xa8sYN_SBimS6R-prRhnh2IFmK3gIXUG91A4_MbMlYPTvilDOQyXpHpILL9GhqGIufoeJm5SgkA-P_7.jpg?size=2160x2160&quality=96&type=album',
+            caption='''Привет👋, Я Зи 
 Aссистент компании Zetroom💡
 Я помогу тебе разобраться как тут все устроено
 Если ты хочешь оставить заявку на курсы то нажми \n"Курсы 💻"
@@ -375,7 +377,7 @@ Aссистент компании Zetroom💡
     else:
         inline_btn_1 = InlineKeyboardButton('Зарегистрироваться 📲', callback_data='register')
         markup.add(inline_btn_1)
-        await message.answer('Привет, меня зовут Зи, я представляю компанию ZetRoom💡\nДля того, чтобы продолжить просмотр, необходимо предварительно зарегистрироваться 📲"', reply_markup=markup)
+        await message.answer_photo(photo='https://sun9-west.userapi.com/sun9-3/s/v1/ig2/keq9VmIk4Xa8sYN_SBimS6R-prRhnh2IFmK3gIXUG91A4_MbMlYPTvilDOQyXpHpILL9GhqGIufoeJm5SgkA-P_7.jpg?size=2160x2160&quality=96&type=album', caption='Привет, меня зовут Зи, я представляю компанию ZetRoom💡\nДля того, чтобы продолжить просмотр, необходимо предварительно зарегистрироваться 📲"', reply_markup=markup)
 
 
 @dp.message_handler(commands=['admin'])
@@ -412,7 +414,7 @@ async def accept(message: types.Message):
 async def accept(message: types.Message):
     print(message.text)
     if message.text == 'ZetRoom':
-        await bot.send_sticker(chat_id=message.chat.id, sticker='CAACAgIAAxkBAAEFUjFi1-ZJ87hEAozUIuD8HnKkuFnfswACY2kAAuCjggfNiOgW_zbDYikE')
+        await bot.send_photo(chat_id=message.chat.id, photo='https://sun3.userapi.com/sun3-13/s/v1/ig2/JO8lC-NB6LGn8px5ZRYrTEUkfPihlofSmu-NRSTxEAvrCIC7luwyRgkx2wMvVY6ixmWQREeInW-n9-2_rWM4F1An.jpg?size=1000x1000&quality=96&type=album')
         await message.reply(text='Вы разблокировали пасхалку🥳🥳')
 
 
@@ -427,9 +429,9 @@ async def process_callback(call: types.CallbackQuery):
         print(call.message)
         markup = InlineKeyboardMarkup(row_width=2)
         print(courses)
-        print(call.message.text)
-        print('Привет' not in call.message.text)
-        if 'Привет' not in call.message.text:
+        print(call.message.caption)
+        # print('Привет' not in call.message.text)
+        if 'Привет' not in call.message.caption:
             await bot.delete_message(call.from_user.id, call.message.message_id)
 
         for i in courses:
@@ -437,7 +439,8 @@ async def process_callback(call: types.CallbackQuery):
             markup.add(inline_btn_1)
         inline_btn_1 = InlineKeyboardButton('Домой', callback_data=f'home')
         markup.add(inline_btn_1)
-        await bot.send_message(chat_id=call.from_user.id, text='Здесь у нас все актуальные курсы, зайдя в них вы можете оставить заявки либо подробнее узнать о курсах 🌐', reply_markup=markup)
+
+        await bot.send_photo(chat_id=call.from_user.id, photo='https://sun3.userapi.com/sun3-11/s/v1/ig2/qXL0cHxu52gVZ4pTKbK-bx_TRSEzkfzQb7p5Gnl7btrf14iGtSsK4R5SCWTsXZhLEXlmAJhadoL_G1F1Y8JVKbeT.jpg?size=1920x1080&quality=96&type=album', caption='Здесь у нас все актуальные курсы, зайдя в них вы можете оставить заявки либо подробнее узнать о курсах 🌐', reply_markup=markup)
     if 'groups' in call.data:
         await bot.delete_message(call.from_user.id, call.message.message_id)
         rer = requests.get(f'{host_url}api/v1/grouplistbot/?format=json').json()

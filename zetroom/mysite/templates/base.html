@@ -1,69 +1,86 @@
 <!DOCTYPE html>
 {% load static %}
+
 <html lang="en">
 
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}{% endblock %}</title>
+    <!-- <meta name="viewport" content="width=1270"> -->
+    <!-- <meta name="viewport" content="width=device-width"> -->
     <title>Document</title>
-    <link rel="stylesheet" href="{% static '/css/style.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css/style.min.css' %}">
 
 </head>
 
 <body>
-    <header>
-        <div class="container">
-            <div class="header-inner">
-                <a class="logo" href="index.html">
-                    <!-- <img class="logo__img" src="" alt="logo"> -->
-                    <p class="logo__title">Logo</p>
-                </a>
-                <nav class="nav">
-                    <ul class="menu">
-                        <li class="menu__item">
-                            <a href="" class="menu__link">
-                                О нас
-                            </a>
-                        </li>
-                        <li class="menu__item">
-                            <a href="" class="menu__link">
-                                Курсы
-                            </a>
-                        </li>
-                        <li class="menu__item">
-                            <a href="" class="menu__link">
-                                Отзывы
-                            </a>
-                        </li>
-                        <li class="menu__item">
-                            <a href="" class="menu__link">
-                                FAQ
-                            </a>
-                        </li>
-                        <li class="menu__item">
-                            <a href="" class="menu__link">
-                                Контакты
-                            </a>
-                        </li>
-                    </ul>
-                </nav>
+    <div class="container1">
+        <header>
+            <div class="container">
+                <div class="header-inner">
+                    <a class="logo" href="/">
+                        <!-- <img class="logo__img" src="" alt="logo"> -->
+                        <p class="logo__title">Logo</p>
+                    </a>
+                    <nav class="nav">
+                        <ul class="menu">
+                            <li class="menu__item">
+                                <a href="#about1" class="menu__link link1">
+                                    О нас
+                                </a>
+                            </li>
+                            <li class="menu__item">
+                                <a href="#courses" class="menu__link">
+                                    Курсы
+                                </a>
+                            </li>
+                            <li class="menu__item">
+                                <a href="#reviews" class="menu__link">
+                                    Отзывы
+                                </a>
+                            </li>
+                            <li class="menu__item">
+                                <a href="" class="menu__link">
+                                    FAQ
+                                </a>
+                            </li>
+                            <li class="menu__item">
+                                <a href="#call-to-action" class="menu__link">
+                                    Контакты
+                                </a>
+                            </li>
+                        </ul>
+                        <div class="burger">
+                            <span></span>
+                        </div>
+                    </nav>
+                </div>
             </div>
-        </div>
-    </header>
+        </header>
 {% block content %}
 {% endblock %}
-
-    <footer class="footer">
+    <footer class="footer" id="footer">
         <div class="container">
             <div class="footer-inner">
                 <div class="footer-inner__item">
                     <img src="" alt="" class="footer-inner__item-logo">
-                    <img src="{% static './assets/images/insta.svg' %}" alt="" class="footer-inner__item-img-logo">
-                    <img src="{% static './assets/images/telegram.svg' %}" alt="" class="footer-inner__item-img-logo">
-                    <img src="{% static './assets/images/whatsapp.svg' %}" alt="" class="footer-inner__item-img-logo">
+                    <ul class="footer-inner__item-list-ul">
+                        <li class="footer-inner__item-list-li">
+                            <a href="#"><img src="{% static './assets/images/insta.svg' %}" alt=""
+                                    class="footer-inner__item-img-logo1"></a>
+                        <li class="footer-inner__item-list-li">
+                            <a href="#"><img src="{% static './assets/images/telegram.svg' %}" alt=""
+                                    class="footer-inner__item-img-logo2"></a>
+                        </li>
+                        <li class="footer-inner__item-list-li">
+                            <a href="#"><img src="{% static './assets/images/whatsapp.svg' %}" alt=""
+                                    class="footer-inner__item-img-logo3"></a>
+                        </li>
+                    </ul>
                 </div>
-                <div class="footer-inner__item">
+                <div class="footer-inner__item footer-inner__item-adaptiv">
                     <h2 class="footer-inner__item-title">
                         УЧЕБНЫЕ КУРСЫ
                     </h2>
@@ -113,7 +130,7 @@
                         </li>
                     </ul>
                 </div>
-                <div class="footer-inner__item">
+                <div class="footer-inner__item footer-inner__item-ml">
                     <h2 class="footer-inner__item-title">
                         УЧЕНИКАМ
                     </h2>
@@ -132,14 +149,14 @@
                         </li>
                     </ul>
                 </div>
-                <div class="footer-inner__item">
+                <div class="footer-inner__item footer-inner__item-mt">
                     <img src="{% static './assets/images/location.png' %}" class="footer-inner__item-img">
                     <div class="footer-inner__item-addres">
                         <p class="footer-inner__item-descr">
                             Наш адрес: г. Бишкек, ул.
                         </p>
                         <p class="footer-inner__item-descr">
-                            Каралаева 40/4 блок Г
+                            Каралаева 40
                         </p>
                         <p class="footer-inner__item-number ">
                             +996 (555) 300 555
@@ -149,6 +166,7 @@
             </div>
         </div>
     </footer>
+    </div>
     <script src="{% static 'js/app.js' %}"></script>
 </body>
 

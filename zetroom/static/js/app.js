@@ -1,3 +1,12 @@
+// -------BURGER------
+
+document.querySelector('.burger').addEventListener('click', function () {
+  document.querySelector('.burger', '.menu').classList.toggle('active');
+  document.querySelector('.menu').classList.toggle("open");
+});
+
+// --------ACCORDION----------
+
 const accordionHeader = document.querySelectorAll('.questions-inner-all-accordions__accordion__header');
 
 accordionHeader.forEach(accordionHeader => {
@@ -19,11 +28,10 @@ accordionHeader.forEach(accordionHeader => {
   });
 });
 
-
-
+// -----------MODAL-WINDOW------------
 
 window.addEventListener("load", function () {
-  const div = document.querySelector(".events-inner__link1");
+  const div = document.querySelector(".events-inner__item1");
   const window = document.querySelector(".btn-modal");
   const windowClose = document.querySelector(".close");
 
@@ -38,7 +46,7 @@ window.addEventListener("load", function () {
 });
 
 window.addEventListener("load", function () {
-  const div = document.querySelector(".events-inner__link2");
+  const div = document.querySelector(".events-inner__item2");
   const window = document.querySelector(".btn-modal");
   const windowClose = document.querySelector(".close");
 
@@ -53,7 +61,7 @@ window.addEventListener("load", function () {
 });
 
 window.addEventListener("load", function () {
-  const div = document.querySelector(".events-inner__link3");
+  const div = document.querySelector(".events-inner__item3");
   const window = document.querySelector(".btn-modal");
   const windowClose = document.querySelector(".close");
 
@@ -67,3 +75,32 @@ window.addEventListener("load", function () {
   });
 });
 
+window.addEventListener("load", function () {
+  const div1 = document.querySelector(".submit");
+  const window1 = document.querySelector(".btn-modal2");
+  const windowClose1 = document.querySelector(".close2");
+
+  div1.addEventListener("click", function () {
+    window1.classList.toggle("active");
+  });
+
+  windowClose1.addEventListener("click", function () {
+    window1.classList.remove("active");
+
+  });
+});
+
+const anchors = document.querySelectorAll('a[href*="#"]');
+
+for (let anchor of anchors) {
+  anchor.addEventListener('click', function (e) {
+    e.preventDefault()
+
+    const blockID = anchor.getAttribute('href').substr(1)
+
+    document.getElementById(blockID).scrollIntoView({
+      behavior: 'smooth',
+      block: 'start'
+    })
+  })
+}

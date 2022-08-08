@@ -22,6 +22,8 @@ class Course(models.Model):
     hour = models.IntegerField()
     image = models.ImageField(upload_to='images/courses/', blank=True, null=True)
     date = models.DateTimeField(auto_now_add=True)
+    education = models.TextField(blank=True, null=True)
+
 
     def __str__(self):
         return f'{self.title}'
@@ -150,3 +152,46 @@ class Feedback(models.Model):
         verbose_name_plural = 'Заявки сайт'
         ordering = ['-date']
 
+
+class ApplicationCourse(models.Model):
+    name = models.CharField(max_length=100)
+    phone = models.CharField(max_length=100)
+    course = models.ForeignKey(Course, on_delete=models.CASCADE)
+    date = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f'{self.name}'
+
+    class Meta:
+        verbose_name = 'Заявка на курс с сайта'
+        verbose_name_plural = 'Заявки на курс с сайта'
+        ordering = ['-date']
+
+
+class ApplicationMeeting(models.Model):
+    name = models.CharField(max_length=100)
+    phone = models.CharField(max_length=100)
+    meeting = models.ForeignKey(Meeting, on_delete=models.CASCADE)
+    date = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f'{self.name}'
+
+    class Meta:
+        verbose_name = 'Заявка на курс с сайта'
+        verbose_name_plural = 'Заявки на курс с сайта'
+        ordering = ['-date']
+
+
+class CourseFacts(models.Model):
+    title = models.CharField(max_length=255)
+    course = models.ForeignKey(Course, on_delete=models.CASCADE)
+    date = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.title}"
+
+    class Meta:
+        verbose_name = 'Факт о курсе'
+        verbose_name_plural = 'Факты о курсе'
+        ordering = ['-date']
